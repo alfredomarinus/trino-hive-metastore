@@ -1,29 +1,18 @@
-version: "3.9"
-
+version: '3.8'
 services:
-  postgres:
-    image: postgres:14
-    container_name: postgres
-    restart: unless-stopped
-    env_file:
-      - .env
+  trino:
+    image: trinodb/trino:latest
+    container_name: trino
+    hostname: trino
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - 8080:8080
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "$POSTGRES_USER"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - data-stack
-  
+      - ./trino:/etc/trino
+    depends_on:
+      - metastore
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   minio:
     image: minio/minio
     container_name: minio
@@ -31,121 +20,70 @@ services:
     env_file:
       - .env
     ports:
-      - "9000:9000"
+      - "9002:9000"
       - "9001:9001"
     volumes:
       - minio-data:/data
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/ready"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9002/minio/health/ready"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     networks:
-      - data-stack
-  
-  trino:
-    image: trinodb/trino:latest
-    container_name: trino
-    restart: unless-stopped
-    depends_on:
-      minio:
-        condition: service_healthy
-      hive-metastore-1:
-        condition: service_healthy
-    ports:
-      - "8090:8080"
-    environment:
-      - JAVA_TOOL_OPTIONS=-Xmx1G
-    volumes:
-      - ./trino:/etc/trino:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8090/v1/info"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    networks:
-      - data-stack
+      - net_lakehouse
 
-  hive-metastore-1:
+  metastore-db:
     image: apache/hive:4.0.0
-    container_name: hive-metastore-1
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - .env
-    ports:
-    - "9083:9083"
-    environment:
-      - SERVICE_NAME=metastore
-      - HIVE_METASTORE_DB_TYPE=postgres
-      - HIVE_METASTORE_DB_HOST=postgres
-      - HIVE_METASTORE_DB_PORT=5432
-      - HIVE_METASTORE_DB=metastore
-      - HIVE_METASTORE_USER=${POSTGRES_USER}
-      - HIVE_METASTORE_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      # - hive-metastore-data-1:/opt/hive/data
-      - ./conf/metastore-site.xml:/opt/apache-hive-metastore-3.0.0-bin/conf/metastore-site.xml:ro
-    command: >
-      bash -c "schematool -initSchema -dbType postgres &&
-               hive --service metastore"
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9083' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+    container_name: metastore-db
     networks:
-      - data-stack
-  
-  # hive-metastore-2:
-  #   image: apache/hive:4.0.0
-  #   container_name: hive-metastore-2
-  #   restart: unless-stopped
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   env_file:
-  #     - .env
-  #   ports:
-  #   - "9084:9084"
-  #   environment:
-  #     - SERVICE_NAME=metastore
-  #     - HIVE_METASTORE_DB_TYPE=postgres
-  #     - HIVE_METASTORE_DB_HOST=postgres
-  #     - HIVE_METASTORE_DB_PORT=5432
-  #     - HIVE_METASTORE_DB=hive-metastore
-  #     - HIVE_METASTORE_USER=${POSTGRES_USER}
-  #     - HIVE_METASTORE_PASSWORD=${POSTGRES_PASSWORD}
-  #   volumes:
-  #     - hive-metastore-data-2:/opt/hive/data
-  #   command: >
-  #     bash -c "schematool -initSchema -dbType postgres &&
-  #              hive --service metastore"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9084' || exit 1"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #     start_period: 60s
-  #   networks:
-  #     - data-stack
+      - net_lakehouse
+    volumes:
+      - metastore-db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-volumes:
-  postgres-db-volume:
-  minio-data:
-  # hive-metastore-data-1:
-  # hive-metastore-data-2:
+  create-metastore-schema:
+    image: apache/hive:4.0.0
+    container_name: create-metastore-schema
+    depends_on:
+      - metastore-db
+    networks:
+      - net_lakehouse
+    command: /opt/hive-metastore/bin/schematool --verbose -initSchema -dbType mysql -userName ${MYSQL_ROOT_USER} -passWord ${MYSQL_ROOT_PASSWORD} -url jdbc:mysql://metastore-db:3306/metastore_db?createDatabaseIfNotExist=true
+    restart: "on-failure"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  metastore:
+    image: apache/hive:4.0.0
+    container_name: metastore
+    networks:
+      - net_lakehouse
+    volumes:
+      - ./trino/conf/metastore-site.xml:/opt/hive-metastore/conf/metastore-site.xml
+      - ./trino/conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    command: /opt/hive-metastore/bin/start-metastore -p 9083
+    depends_on:
+      - create-metastore-schema
+      - metastore-db
+      - minio
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
-  data-stack:
-    driver: bridge
-    name: data-stack
+  net_lakehouse:
+
+volumes:
+  metastore-db:
+  minio-data:
