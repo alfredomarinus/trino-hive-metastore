@@ -10,8 +10,8 @@ services:
       - ./trino:/etc/trino
     depends_on:
       - metastore
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - net_lakehouse
 
   minio:
     image: minio/minio
@@ -25,11 +25,11 @@ services:
     volumes:
       - minio-data:/data
     environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:9002/minio/health/ready"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9001/minio/health/ready"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,52 +38,50 @@ services:
       - net_lakehouse
 
   metastore-db:
-    image: apache/hive:4.0.0
+    image: mysql:5.7
     container_name: metastore-db
+    environment:
+      - MYSQL_ROOT_USER=${MYSQL_ROOT_USER}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=metastore_db
+    volumes:
+    - metastore-db:/var/lib/mysql
+    ports:
+    - "3306:3306"
     networks:
       - net_lakehouse
-    volumes:
-      - metastore-db:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   create-metastore-schema:
     image: apache/hive:4.0.0
     container_name: create-metastore-schema
     depends_on:
       - metastore-db
+    command: /opt/hive-metastore/bin/schematool --verbose -initSchema -dbType mysql -userName ${MYSQL_ROOT_USER} -passWord ${MYSQL_ROOT_PASSWORD} -url jdbc:mysql://metastore-db:3306/metastore_db?createDatabaseIfNotExist=true
+    restart: on-failure
     networks:
       - net_lakehouse
-    command: /opt/hive-metastore/bin/schematool --verbose -initSchema -dbType mysql -userName ${MYSQL_ROOT_USER} -passWord ${MYSQL_ROOT_PASSWORD} -url jdbc:mysql://metastore-db:3306/metastore_db?createDatabaseIfNotExist=true
-    restart: "on-failure"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   metastore:
     image: apache/hive:4.0.0
     container_name: metastore
-    networks:
-      - net_lakehouse
     volumes:
       - ./trino/conf/metastore-site.xml:/opt/hive-metastore/conf/metastore-site.xml
       - ./trino/conf/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
     environment:
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
     command: /opt/hive-metastore/bin/start-metastore -p 9083
     depends_on:
       - create-metastore-schema
       - metastore-db
       - minio
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-networks:
-  net_lakehouse:
+    networks:
+      - net_lakehouse
 
 volumes:
   metastore-db:
   minio-data:
+
+networks:
+  net_lakehouse:
