@@ -1,0 +1,75 @@
+services:
+  trino:
+    image: trinodb/trino:latest
+    container_name: trino
+    hostname: trino
+    ports:
+      - 8080:8080
+    volumes:
+      - ./trino/catalog:/etc/trino/catalog
+    depends_on:
+      - mysql
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    volumes:
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL}
+      TZ: Asia/Kuala_Lumpur
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/minio/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hive
+      MYSQL_USER: hive
+      MYSQL_PASSWORD: hive
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: always
+
+  hive-metastore:
+    build:
+      context: ./hive-metastore
+      dockerfile: Dockerfile
+    container_name: hive-metastore
+    environment:
+      SERVICE_NAME: metastore
+      HIVE_METASTORE_DB_TYPE: mysql
+      HIVE_DB: hive
+      HIVE_USER: hive
+      HIVE_PASSWORD: hive
+      HIVE_DB_HOST: mysql
+    volumes:
+      - ./hive-metastore/conf:/opt/hive/conf
+    ports:
+      - 9083:9083
+    depends_on:
+      - mysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9083"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mysql-data:
+  minio-data:
