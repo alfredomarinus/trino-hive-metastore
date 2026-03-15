@@ -1,5 +1,6 @@
 .PHONY: up down restart logs reset status shell build \
-       datahub-ingest datahub-logs opa-test opa-logs
+       datahub-up datahub-down datahub-ingest datahub-logs \
+       opa-test opa-logs
 
 up:
 	docker compose up -d
@@ -27,6 +28,12 @@ build:
 	docker compose build --no-cache
 
 # DataHub
+datahub-up:
+	docker compose --profile datahub up -d
+
+datahub-down:
+	docker compose --profile datahub down
+
 datahub-logs:
 	docker compose logs -f datahub-gms datahub-frontend datahub-actions
 

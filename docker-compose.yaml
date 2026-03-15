@@ -211,6 +211,7 @@ services:
     container_name: datahub-zookeeper
     hostname: datahub-zookeeper
     restart: unless-stopped
+    profiles: [datahub]
     ports:
       - "${DATAHUB_ZK_PORT:-2181}:2181"
     environment:
@@ -231,6 +232,7 @@ services:
     container_name: datahub-broker
     hostname: datahub-broker
     restart: unless-stopped
+    profiles: [datahub]
     depends_on:
       datahub-zookeeper:
         condition: service_healthy
@@ -261,6 +263,7 @@ services:
     container_name: datahub-schema-registry
     hostname: datahub-schema-registry
     restart: unless-stopped
+    profiles: [datahub]
     depends_on:
       datahub-broker:
         condition: service_healthy
@@ -282,6 +285,7 @@ services:
     container_name: datahub-elasticsearch
     hostname: datahub-elasticsearch
     restart: unless-stopped
+    profiles: [datahub]
     ports:
       - "${DATAHUB_ELASTIC_PORT:-9200}:9200"
     environment:
@@ -306,6 +310,7 @@ services:
     container_name: datahub-mysql
     hostname: datahub-mysql
     restart: on-failure
+    profiles: [datahub]
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin --default-authentication-plugin=mysql_native_password
     ports:
       - "${DATAHUB_MYSQL_PORT:-53306}:3306"
@@ -328,6 +333,7 @@ services:
     image: acryldata/datahub-kafka-setup:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-kafka-setup
     hostname: datahub-kafka-setup
+    profiles: [datahub]
     depends_on:
       datahub-broker:
         condition: service_healthy
@@ -344,6 +350,7 @@ services:
     image: acryldata/datahub-upgrade:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-upgrade
     hostname: datahub-upgrade
+    profiles: [datahub]
     command:
       - -u
       - SystemUpdate
@@ -384,6 +391,7 @@ services:
     container_name: datahub-gms
     hostname: datahub-gms
     restart: unless-stopped
+    profiles: [datahub]
     depends_on:
       datahub-upgrade:
         condition: service_completed_successfully
@@ -433,6 +441,7 @@ services:
     container_name: datahub-frontend
     hostname: datahub-frontend
     restart: unless-stopped
+    profiles: [datahub]
     depends_on:
       datahub-gms:
         condition: service_healthy
@@ -457,6 +466,7 @@ services:
     container_name: datahub-actions
     hostname: datahub-actions
     restart: unless-stopped
+    profiles: [datahub]
     depends_on:
       datahub-gms:
         condition: service_healthy
