@@ -3,8 +3,8 @@ source:
   config:
     host_port: "trino:8443"
     username: "admin"
-    spassword: "${TRINO_ADMIN_PASSWORD}"
-    database: "hive"
+    password: "${TRINO_ADMIN_PASSWORD}"
+    database: "bronze"
     options:
       connect_args:
         http_scheme: "https"
