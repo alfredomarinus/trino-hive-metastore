@@ -55,7 +55,7 @@ make logs
 ## Common Operations
 
 ```bash
-make up              # Start all services
+make up              # Start core services (Trino, Hive, MinIO, OPA)
 make down            # Stop all running services
 make restart         # Restart all running services
 make logs            # Follow all service logs
@@ -67,7 +67,11 @@ make build           # Rebuild images (e.g. after Dockerfile changes)
 
 ### DataHub
 
+DataHub services are behind a Compose profile and not started by default. Use the `datahub-` targets to manage them.
+
 ```bash
+make datahub-up      # Start DataHub services
+make datahub-down    # Stop DataHub services
 make datahub-logs    # Follow DataHub service logs (gms, frontend, actions)
 make datahub-ingest  # Run Trino metadata ingestion into DataHub
 ```
@@ -84,7 +88,7 @@ make opa-logs        # Follow OPA logs
 | Service            | URL                      | Default Credentials         |
 |--------------------|--------------------------|-----------------------------|
 | Trino UI (HTTPS)   | https://localhost:8443   | `admin` / (password you set in step 4) |
-| Trino UI (HTTP)    | http://localhost:8080    | Redirects to HTTPS          |
+| Trino UI (HTTP)    | http://localhost:8080    | Unauthenticated (dev only)  |
 | MinIO Console      | http://localhost:9001    | `minioadmin` / `minioadmin` |
 | DataHub            | http://localhost:9002    | `datahub` / `datahub`       |
 | OPA                | http://localhost:8181    | —                           |
@@ -142,6 +146,7 @@ All secrets and configurable values are in `.env` (git-ignored). See `.env.examp
 | `MYSQL_PASSWORD` | MySQL password for the Hive Metastore |
 | `S3_REGION` | AWS/S3 region for Trino native S3 connector |
 | `TRINO_SHARED_SECRET` | Shared secret for Trino internal communication |
+| `TRINO_ADMIN_PASSWORD` | Trino admin password (used by DataHub ingestion) |
 | `TZ` | Timezone for all services |
 | `OPA_PORT` | Port mapping for OPA (default `8181`) |
 
@@ -149,7 +154,7 @@ All secrets and configurable values are in `.env` (git-ignored). See `.env.examp
 
 | Variable | Purpose |
 |----------|---------|
-| `DATAHUB_VERSION` | DataHub image tag (default `head`) |
+| `DATAHUB_VERSION` | DataHub image tag (default `v0.15.0`) |
 | `DATAHUB_CONFLUENT_VERSION` | Confluent platform version (default `7.9.2`) |
 | `DATAHUB_MYSQL_PASSWORD` | Password for DataHub's MySQL instance |
 | `DATAHUB_GMS_PORT` | Port for DataHub GMS API (default `8082`) |
@@ -160,6 +165,7 @@ All secrets and configurable values are in `.env` (git-ignored). See `.env.examp
 | `DATAHUB_SCHEMA_REGISTRY_PORT` | Port for Schema Registry (default `8083`) |
 | `DATAHUB_MYSQL_PORT` | Port for DataHub MySQL (default `53306`) |
 | `DATAHUB_SECRET` | DataHub frontend play secret |
+| `DATAHUB_SYSTEM_CLIENT_SECRET` | DataHub system client secret |
 | `DATAHUB_TELEMETRY_ENABLED` | Enable DataHub telemetry (default `false`) |
 | `DATAHUB_TOKEN_SERVICE_SIGNING_KEY` | Signing key for DataHub tokens |
 | `DATAHUB_TOKEN_SERVICE_SALT` | Salt for DataHub token service |
