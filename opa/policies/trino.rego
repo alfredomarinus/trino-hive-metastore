@@ -6,6 +6,8 @@ default allow := false
 
 admins := {"admin", "datahub"}
 
+data_catalogs := {"bronze", "silver", "gold"}
+
 # Admins have full access
 allow if {
     input.context.identity.user in admins
@@ -30,10 +32,10 @@ allow if {
     input.action.resource.catalog.name == "system"
 }
 
-# All authenticated users can read the hive catalog
+# All authenticated users can read the data catalogs (bronze/silver/gold)
 allow if {
     input.action.operation == "AccessCatalog"
-    input.action.resource.catalog.name == "hive"
+    input.action.resource.catalog.name in data_catalogs
 }
 
 allow if {
@@ -46,15 +48,12 @@ allow if {
         "SelectFromColumns",
         "ShowFunctions",
     ]
-    input.action.resource.catalog.name == "hive"
+    input.action.resource.catalog.name in data_catalogs
 }
 
-# Allow setting catalog/schema session properties
+# Allow setting catalog session properties
 allow if {
-    input.action.operation in [
-        "SetCatalogSessionProperty",
-        "SetSchemaAuthorization",
-    ]
+    input.action.operation == "SetCatalogSessionProperty"
 }
 
 # Allow table/view read operations for any catalog
