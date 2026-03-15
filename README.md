@@ -43,7 +43,8 @@ openssl req -x509 -newkey rsa:2048 -keyout trino/key.pem -out trino/cert.pem \
 cat trino/key.pem trino/cert.pem > trino/keystore.pem
 
 # 4. Create a password file for Trino (requires htpasswd from apache2-utils)
-htpasswd -B -C 5 -c trino/password.db admin
+htpasswd -B -C 10 -c trino/password.db admin
+htpasswd -B -C 10 trino/password.db datahub
 
 # 5. Build and start all services
 make build && make up
