@@ -184,7 +184,7 @@ services:
       retries: 5
 
   opa:
-    image: openpolicyagent/opa:latest
+    image: openpolicyagent/opa:1.4.2-static
     container_name: opa
     hostname: opa
     restart: unless-stopped
@@ -325,7 +325,7 @@ services:
       start_period: 20s
 
   datahub-kafka-setup:
-    image: acryldata/datahub-kafka-setup:${DATAHUB_VERSION:-head}
+    image: acryldata/datahub-kafka-setup:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-kafka-setup
     hostname: datahub-kafka-setup
     depends_on:
@@ -341,7 +341,7 @@ services:
       datahub_setup_job: "true"
 
   datahub-upgrade:
-    image: acryldata/datahub-upgrade:${DATAHUB_VERSION:-head}
+    image: acryldata/datahub-upgrade:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-upgrade
     hostname: datahub-upgrade
     command:
@@ -380,7 +380,7 @@ services:
       datahub_setup_job: "true"
 
   datahub-gms:
-    image: acryldata/datahub-gms:${DATAHUB_VERSION:-head}
+    image: acryldata/datahub-gms:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-gms
     hostname: datahub-gms
     restart: unless-stopped
@@ -429,7 +429,7 @@ services:
       start_period: 90s
 
   datahub-frontend:
-    image: acryldata/datahub-frontend-react:${DATAHUB_VERSION:-head}
+    image: acryldata/datahub-frontend-react:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-frontend
     hostname: datahub-frontend
     restart: unless-stopped
@@ -453,7 +453,7 @@ services:
       - ${HOME}/.datahub/plugins:/etc/datahub/plugins
 
   datahub-actions:
-    image: acryldata/datahub-actions:${DATAHUB_VERSION:-head}-slim
+    image: acryldata/datahub-actions:${DATAHUB_VERSION:-v0.15.0}-slim
     container_name: datahub-actions
     hostname: datahub-actions
     restart: unless-stopped
