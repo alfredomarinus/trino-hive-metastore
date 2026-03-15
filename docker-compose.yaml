@@ -465,7 +465,7 @@ services:
       - ${HOME}/.datahub/plugins:/etc/datahub/plugins
 
   datahub-actions:
-    image: acryldata/datahub-actions:${DATAHUB_VERSION:-v0.15.0}-slim
+    image: acryldata/datahub-actions:${DATAHUB_ACTIONS_VERSION:-v0.1.10}
     container_name: datahub-actions
     hostname: datahub-actions
     restart: unless-stopped

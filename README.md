@@ -156,6 +156,7 @@ All secrets and configurable values are in `.env` (git-ignored). See `.env.examp
 | Variable | Purpose |
 |----------|---------|
 | `DATAHUB_VERSION` | DataHub image tag (default `v0.15.0`) |
+| `DATAHUB_ACTIONS_VERSION` | DataHub Actions image tag (default `v0.1.10`) |
 | `DATAHUB_CONFLUENT_VERSION` | Confluent platform version (default `7.9.2`) |
 | `DATAHUB_MYSQL_PASSWORD` | Password for DataHub's MySQL instance |
 | `DATAHUB_GMS_PORT` | Port for DataHub GMS API (default `8082`) |
