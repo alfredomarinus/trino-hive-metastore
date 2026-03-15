@@ -76,9 +76,6 @@ services:
       mc mb myminio/bronze || true;
       mc mb myminio/silver || true;
       mc mb myminio/gold || true;
-      mc anonymous set public myminio/bronze;
-      mc anonymous set public myminio/silver;
-      mc anonymous set public myminio/gold;
       exit 0;
       "
 
