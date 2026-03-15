@@ -126,6 +126,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 60s
 
   hive-metastore-silver:
     build:
@@ -154,6 +155,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 60s
 
   hive-metastore-gold:
     build:
@@ -182,6 +184,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 60s
 
   opa:
     image: openpolicyagent/opa:1.4.2-static
