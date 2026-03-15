@@ -271,7 +271,7 @@ services:
       datahub-broker:
         condition: service_healthy
     ports:
-      - "${DATAHUB_SCHEMA_REGISTRY_PORT:-8081}:8081"
+      - "${DATAHUB_SCHEMA_REGISTRY_PORT:-8083}:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: datahub-schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
