@@ -332,6 +332,38 @@ services:
       retries: 5
       start_period: 20s
 
+  datahub-mysql-setup:
+    image: acryldata/datahub-mysql-setup:${DATAHUB_VERSION:-head}
+    container_name: datahub-mysql-setup
+    hostname: datahub-mysql-setup
+    profiles: [datahub]
+    depends_on:
+      datahub-mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: datahub-mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: datahub
+      MYSQL_PASSWORD: ${DATAHUB_MYSQL_PASSWORD:-datahub}
+      DATAHUB_DB_NAME: datahub
+    labels:
+      datahub_setup_job: "true"
+
+  datahub-elasticsearch-setup:
+    image: acryldata/datahub-elasticsearch-setup:${DATAHUB_VERSION:-head}
+    container_name: datahub-elasticsearch-setup
+    hostname: datahub-elasticsearch-setup
+    profiles: [datahub]
+    depends_on:
+      datahub-elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTICSEARCH_HOST: datahub-elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      ELASTICSEARCH_PROTOCOL: http
+    labels:
+      datahub_setup_job: "true"
+
   datahub-kafka-setup:
     image: acryldata/datahub-kafka-setup:${DATAHUB_VERSION:-v0.15.0}
     container_name: datahub-kafka-setup
