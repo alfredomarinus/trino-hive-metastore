@@ -365,7 +365,7 @@ services:
       datahub_setup_job: "true"
 
   datahub-kafka-setup:
-    image: acryldata/datahub-kafka-setup:${DATAHUB_VERSION:-v0.15.0}
+    image: acryldata/datahub-kafka-setup:${DATAHUB_VERSION:-head}
     container_name: datahub-kafka-setup
     hostname: datahub-kafka-setup
     profiles: [datahub]
@@ -382,7 +382,7 @@ services:
       datahub_setup_job: "true"
 
   datahub-upgrade:
-    image: acryldata/datahub-upgrade:${DATAHUB_VERSION:-v0.15.0}
+    image: acryldata/datahub-upgrade:${DATAHUB_VERSION:-head}
     container_name: datahub-upgrade
     hostname: datahub-upgrade
     profiles: [datahub]
@@ -390,14 +390,17 @@ services:
       - -u
       - SystemUpdate
     depends_on:
-      datahub-elasticsearch:
-        condition: service_healthy
+      datahub-mysql-setup:
+        condition: service_completed_successfully
+      datahub-elasticsearch-setup:
+        condition: service_completed_successfully
       datahub-kafka-setup:
         condition: service_completed_successfully
       datahub-mysql:
         condition: service_healthy
+      datahub-elasticsearch:
+        condition: service_healthy
     environment:
-      DATAHUB_SQL_SETUP_ENABLED: "true"
       EBEAN_DATASOURCE_USERNAME: datahub
       EBEAN_DATASOURCE_PASSWORD: ${DATAHUB_MYSQL_PASSWORD:-datahub}
       EBEAN_DATASOURCE_HOST: datahub-mysql:3306
@@ -422,7 +425,7 @@ services:
       datahub_setup_job: "true"
 
   datahub-gms:
-    image: acryldata/datahub-gms:${DATAHUB_VERSION:-v0.15.0}
+    image: acryldata/datahub-gms:${DATAHUB_VERSION:-head}
     container_name: datahub-gms
     hostname: datahub-gms
     restart: unless-stopped
@@ -472,7 +475,7 @@ services:
       start_period: 90s
 
   datahub-frontend:
-    image: acryldata/datahub-frontend-react:${DATAHUB_VERSION:-v0.15.0}
+    image: acryldata/datahub-frontend-react:${DATAHUB_VERSION:-head}
     container_name: datahub-frontend
     hostname: datahub-frontend
     restart: unless-stopped
@@ -497,7 +500,7 @@ services:
       - ${HOME}/.datahub/plugins:/etc/datahub/plugins
 
   datahub-actions:
-    image: acryldata/datahub-actions:${DATAHUB_ACTIONS_VERSION:-v0.1.10}
+    image: acryldata/datahub-actions:${DATAHUB_ACTIONS_VERSION:-head-slim}
     container_name: datahub-actions
     hostname: datahub-actions
     restart: unless-stopped
