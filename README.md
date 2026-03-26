@@ -39,7 +39,8 @@ cp .env.example .env
 
 # 3. Generate TLS keystore for Trino HTTPS (self-signed, for development)
 openssl req -x509 -newkey rsa:2048 -keyout trino/key.pem -out trino/cert.pem \
-  -days 365 -nodes -subj "/CN=trino"
+  -days 365 -nodes -subj "/CN=trino" \
+  -addext "subjectAltName=DNS:trino,DNS:localhost,IP:127.0.0.1"
 cat trino/key.pem trino/cert.pem > trino/keystore.pem
 
 # 4. Create a password file for Trino (requires htpasswd from apache2-utils)
