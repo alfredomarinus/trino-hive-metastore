@@ -1,5 +1,5 @@
 .PHONY: up down restart logs reset status shell build \
-       datahub-up datahub-down datahub-ingest datahub-logs \
+       datahub-up datahub-down datahub-logs \
        opa-test opa-logs
 
 up:
@@ -36,10 +36,6 @@ datahub-down:
 
 datahub-logs:
 	docker compose logs -f datahub-gms datahub-frontend datahub-actions
-
-datahub-ingest:
-	pip install --quiet 'acryl-datahub[trino]' && \
-	datahub ingest -c datahub/trino_recipe.yaml
 
 # OPA
 opa-test:

@@ -75,8 +75,11 @@ DataHub services are behind a Compose profile and not started by default. Use th
 make datahub-up      # Start DataHub services
 make datahub-down    # Stop DataHub services
 make datahub-logs    # Follow DataHub service logs (gms, frontend, actions)
-make datahub-ingest  # Run Trino metadata ingestion into DataHub
 ```
+
+Trino metadata ingestion is configured via the DataHub UI. See `datahub/trino_recipe.yaml` for a reference recipe.
+
+> **Note:** Quick Start step 3 (TLS cert generation) must be completed before running `make datahub-up`, since the DataHub Actions image embeds `trino/cert.pem` at build time.
 
 ### OPA
 
@@ -124,6 +127,7 @@ make opa-logs        # Follow OPA logs
 │   ├── keystore.pem                   # TLS keystore (git-ignored)
 │   └── password.db                    # Password file (git-ignored)
 ├── docker-compose.yaml
+├── Dockerfile.datahub-actions         # Custom DataHub Actions image (adds Trino TLS cert)
 ├── Makefile                           # Common operations
 ├── .env                               # Environment variables (git-ignored)
 ├── .env.example                       # Template for .env
