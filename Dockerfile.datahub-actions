@@ -1,0 +1,9 @@
+ARG DATAHUB_ACTIONS_VERSION=head-slim
+FROM acryldata/datahub-actions:${DATAHUB_ACTIONS_VERSION}
+
+USER root
+COPY ./trino/cert.pem /usr/local/share/ca-certificates/trino.crt
+RUN update-ca-certificates && \
+    cat /usr/local/share/ca-certificates/trino.crt >> \
+        "$(python -c 'import certifi; print(certifi.where())')"
+USER datahub
