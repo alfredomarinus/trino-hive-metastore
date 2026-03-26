@@ -500,7 +500,11 @@ services:
       - ${HOME}/.datahub/plugins:/etc/datahub/plugins
 
   datahub-actions:
-    image: acryldata/datahub-actions:${DATAHUB_ACTIONS_VERSION:-head-slim}
+    build:
+      context: .
+      dockerfile: Dockerfile.datahub-actions
+      args:
+        DATAHUB_ACTIONS_VERSION: ${DATAHUB_ACTIONS_VERSION:-head-slim}
     container_name: datahub-actions
     hostname: datahub-actions
     restart: unless-stopped
@@ -509,6 +513,8 @@ services:
       datahub-gms:
         condition: service_healthy
     environment:
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+      SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
       DATAHUB_GMS_HOST: datahub-gms
       DATAHUB_GMS_PORT: 8080
       DATAHUB_GMS_PROTOCOL: http
