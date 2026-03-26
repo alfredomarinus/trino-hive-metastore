@@ -28,8 +28,8 @@ services:
         condition: service_healthy
       hive-metastore-gold:
         condition: service_healthy
-      minio:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
       opa:
         condition: service_healthy
     healthcheck:
@@ -224,7 +224,7 @@ services:
       - datahub-zkdata:/var/lib/zookeeper/data
       - datahub-zklogs:/var/lib/zookeeper/log
     healthcheck:
-      test: echo srvr | nc datahub-zookeeper 2181
+      test: ["CMD-SHELL", "echo srvr | nc datahub-zookeeper 2181"]
       interval: 5s
       timeout: 5s
       retries: 3
@@ -255,7 +255,7 @@ services:
     volumes:
       - datahub-broker:/var/lib/kafka/data/
     healthcheck:
-      test: nc -z datahub-broker 9092
+      test: ["CMD-SHELL", "nc -z datahub-broker 9092"]
       interval: 1s
       timeout: 5s
       retries: 5
@@ -277,7 +277,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: datahub-broker:29092
     healthcheck:
-      test: nc -z datahub-schema-registry 8081
+      test: ["CMD-SHELL", "nc -z datahub-schema-registry 8081"]
       interval: 1s
       timeout: 5s
       retries: 3
@@ -302,7 +302,7 @@ services:
         limits:
           memory: 1G
     healthcheck:
-      test: curl -sS --fail http://datahub-elasticsearch:9200/_cluster/health?wait_for_status=yellow&timeout=0s
+      test: ["CMD-SHELL", "curl -sS --fail 'http://datahub-elasticsearch:9200/_cluster/health?wait_for_status=yellow&timeout=0s'"]
       interval: 1s
       timeout: 5s
       retries: 3
@@ -326,7 +326,7 @@ services:
     volumes:
       - datahub-mysqldata:/var/lib/mysql
     healthcheck:
-      test: mysqladmin ping -h datahub-mysql -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      test: ["CMD-SHELL", "mysqladmin ping -h datahub-mysql -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"]
       interval: 1s
       timeout: 5s
       retries: 5
@@ -468,7 +468,7 @@ services:
     volumes:
       - ${HOME}/.datahub/plugins:/etc/datahub/plugins
     healthcheck:
-      test: curl -sS --fail http://datahub-gms:8080/health
+      test: ["CMD-SHELL", "curl -sS --fail http://datahub-gms:8080/health"]
       interval: 1s
       timeout: 5s
       retries: 3
