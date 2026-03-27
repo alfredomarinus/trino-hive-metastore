@@ -88,16 +88,6 @@ make opa-test        # Test OPA policy evaluation against a sample request
 make opa-logs        # Follow OPA logs
 ```
 
-## Service URLs
-
-| Service            | URL                      | Default Credentials         |
-|--------------------|--------------------------|-----------------------------|
-| Trino UI (HTTPS)   | https://localhost:8443   | `admin` / (password you set in step 4) |
-| Trino UI (HTTP)    | http://localhost:8080    | Unauthenticated (dev only)  |
-| MinIO Console      | http://localhost:9001    | `minioadmin` / `minioadmin` |
-| DataHub            | http://localhost:9002    | `datahub` / `datahub`       |
-| OPA                | http://localhost:8181    | —                           |
-
 ## Project Structure
 
 ```
@@ -133,6 +123,16 @@ make opa-logs        # Follow OPA logs
 ├── .env.example                       # Template for .env
 └── README.md
 ```
+
+## Service URLs
+
+| Service            | URL                      | Default Credentials         |
+|--------------------|--------------------------|-----------------------------|
+| Trino UI (HTTPS)   | https://localhost:8443   | `admin` / `admin`           |
+| Trino UI (HTTP)    | http://localhost:8080    | Unauthenticated (dev only)  |
+| MinIO Console      | http://localhost:9001    | `minioadmin` / `minioadmin` |
+| DataHub            | http://localhost:9002    | `datahub` / `datahub`       |
+| OPA                | http://localhost:8181    | —                           |
 
 ## Configuration
 
