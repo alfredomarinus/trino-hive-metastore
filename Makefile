@@ -1,4 +1,4 @@
-.PHONY: up down restart logs reset status shell build \
+.PHONY: up down restart logs reset status shell build clean \
        datahub-up datahub-down datahub-logs \
        opa-test opa-logs
 
@@ -26,6 +26,11 @@ shell:
 
 build:
 	docker compose build --no-cache
+
+clean:
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+	rm -rf logs/*
 
 # DataHub
 datahub-up:
